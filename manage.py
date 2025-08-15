@@ -7,6 +7,27 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'minibiblio.settings')
+
+    # --- Création automatique d'un superuser si inexistant ---
+    try:
+        import django
+        django.setup()
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        username = "admin"
+        email = "admin@example.com"
+        password = "admin123"
+
+        if not User.objects.filter(username=username).exists():
+            User.objects.create_superuser(username=username, email=email, password=password)
+            print(f"✅ Superuser '{username}' créé avec succès.")
+        else:
+            print(f"ℹ️ Superuser '{username}' existe déjà.")
+    except Exception as e:
+        print(f"⚠️ Erreur lors de la création du superuser : {e}")
+    # ----------------------------------------------------------
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
