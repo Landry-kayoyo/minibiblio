@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}PK Bibliothèque{% endblock %}</title>
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+<link rel="stylesheet" href="{% static 'css/all.min.css' %}" />
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<style>
+  /* Navbar fixe */
+  .navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1030;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  /* Marge pour que le contenu ne passe pas sous la navbar */
+  body {
+    padding-top: 70px;
+  }
+
+  /* Logo PK stylisé */
+  .navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #ffc107 !important; /* Jaune doré */
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar-brand i {
+    font-size: 1.8rem;
+    margin-right: 8px;
+    color: #5ae21aff;
+  }
+
+  /* Lien navbar au survol */
+  .nav-link {
+    transition: 0.3s ease;
+  }
+  .nav-link:hover {
+    color: #ffc107 !important;
+    transform: scale(1.05);
+  }
+
+  /* Lien actif */
+  .nav-link.active {
+    border-bottom: 2px solid #ffc107;
+    color: #ffc107 !important;
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'home' %}">
+      <i class="fas fa-book-open"></i> PK
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="menu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">Accueil</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if '/books/' in request.path %}active{% endif %}" href="{% url 'books_list' %}">Livres</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container py-4">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="bg-dark text-white text-center py-3 mt-5">
+  &copy; 2025 PK Bibliothèque - Tous droits réservés
+</footer>
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

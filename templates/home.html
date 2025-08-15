@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Accueil - Mini Bibliothèque{% endblock %}
+{% block extra_head %}
+<style>
+  /* Animations et styles améliorés */
+  .book-card {
+    transition: all 0.35s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .book-card.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .book-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+  }
+  .card-img-top {
+    transition: transform 0.5s ease;
+  }
+  .book-card:hover .card-img-top {
+    transform: scale(1.05);
+  }
+  .badge-new {
+    font-size: 0.75rem;
+    z-index: 2;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+  .btn-download:hover {
+    background-color: #28a745 !important;
+    transform: scale(1.12);
+  }
+  .category-btn {
+    transition: all 0.25s ease;
+    border-radius: 20px;
+  }
+  .category-btn:hover {
+    transform: translateY(-3px);
+    background-color: #0d6efd;
+    color: white !important;
+  }
+  /* Barre de recherche focus */
+  .input-group:focus-within {
+    box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+    border-radius: 8px;
+  }
+  /* Bouton retour haut amélioré */
+  #backToTop {
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5 bg-light">
+  <div class="container text-center">
+    <h1 class="display-4 mb-3 animate__animated animate__fadeInDown">📚 Bienvenue dans notre Mini Bibliothèque</h1>
+    <p class="lead mb-4 animate__animated animate__fadeInUp">Découvrez nos derniers trésors littéraires</p>
+
+    <!-- Barre de recherche -->
+    <form class="d-flex justify-content-center mb-4" action="{% url 'books_list' %}" method="get">
+      <div class="input-group w-75 shadow-sm">
+        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+        <input type="text" class="form-control border-start-0" placeholder="Rechercher un livre, auteur ou catégorie..." name="q">
+        <button class="btn btn-primary" type="submit">
+          <i class="fas fa-search me-2"></i>Rechercher
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- Catégories -->
+  <section class="mb-5">
+    <h2 class="mb-4 text-center text-md-start"><i class="fas fa-tags me-2"></i>Catégories</h2>
+    <div class="d-none d-md-block text-center">
+      {% for cat in categories %}
+        <a href="{% url 'books_list' %}?category={{ cat.id }}"
+           class="btn btn-outline-primary mx-1 mb-2 category-btn">
+          <i class="fas fa-{{ cat.icon|default:'book' }} me-1"></i>{{ cat.name }}
+        </a>
+      {% empty %}
+        <div class="alert alert-warning">Aucune catégorie disponible.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Derniers livres -->
+  <section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2><i class="fas fa-clock me-2"></i>Derniers livres ajoutés</h2>
+      <a href="{% url 'books_list' %}" class="btn btn-outline-primary">
+        Voir tous <i class="fas fa-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for book in latest_books %}
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm book-card">
+          <div class="position-relative">
+            <img src="{{ book.cover.url }}" class="card-img-top" alt="{{ book.title }}" style="height: 250px; object-fit: cover;" loading="lazy">
+            {% if book.is_new %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger badge-new">
+              Nouveau
+            </span>
+            {% endif %}
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ book.title }}</h5>
+            <p class="text-muted"><small><i class="fas fa-user-pen me-1"></i>{{ book.author }}</small></p>
+            <p class="card-text flex-grow-1">{{ book.description|truncatechars:100 }}</p>
+            <div class="d-flex justify-content-between mt-auto">
+              <a href="{% url 'book_detail' book.slug %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
+              {% if book.file %}
+              <a href="{{ book.file.url }}" class="btn btn-sm btn-success btn-download" download><i class="fas fa-file-arrow-down"></i></a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<!-- Newsletter -->
+<div class="bg-primary text-white py-5">
+  <div class="container text-center">
+    <h2><i class="fas fa-envelope me-2"></i>Abonnez-vous à notre newsletter</h2>
+    <p class="mb-4">Recevez les dernières nouveautés dans votre boîte mail</p>
+    <form class="row g-2 justify-content-center">
+      <div class="col-md-6">
+        <input type="email" class="form-control form-control-lg" placeholder="Votre email" required>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-light btn-lg w-100"><i class="fas fa-paper-plane me-1"></i>S'abonner</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Bouton retour haut -->
+<button id="backToTop" class="btn btn-primary rounded-circle shadow-lg"
+        style="position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; display: none;">
+  <i class="fas fa-arrow-up"></i>
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Apparition progressive des cartes
+  const cards = document.querySelectorAll('.book-card');
+  cards.forEach((card, i) => {
+    setTimeout(() => card.classList.add('show'), 100 * i);
+  });
+
+  // Bouton retour haut
+  const backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    backToTop.style.display = window.scrollY > 300 ? 'block' : 'none';
+  });
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Catalogue | PK Bibliothèque{% endblock %}
+{% block content %}
+
+<!-- Hero Section with Gradient and Overlay -->
+<section class="hero-section position-relative py-5 py-lg-7">
+  <!-- Overlay sombre pour contraste -->
+  <div class="hero-overlay"></div>
+
+  <div class="container position-relative text-center text-white">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-xl-8">
+        <h1 class="display-4 fw-bold mb-4 hero-title">
+          Explorez Notre Trésor Littéraire
+        </h1>
+        <p class="lead mb-0 text-light opacity-75">
+          Plongez dans notre collection soigneusement sélectionnée et trouvez votre prochaine lecture favorite
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Smart Filter Section -->
+<section class="sticky-top bg-white shadow-sm" style="top: 56px; z-index: 1020;">
+  <div class="container py-3">
+    <div class="d-flex flex-nowrap overflow-x-auto pb-2 gap-2 scrollbar-hidden">
+      <a href="{% url 'books_list' %}"
+         class="btn {% if not selected_category %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill px-4 nowrap">
+        <i class="fas fa-book-open me-2"></i>Tous
+      </a>
+      {% for cat in categories %}
+      <a href="?category={{ cat.id }}"
+         class="btn {% if selected_category == cat.id %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill px-4 nowrap">
+        {{ cat.name }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Books Grid -->
+<section class="py-5 bg-light">
+  <div class="container">
+    {% if books %}
+    <div class="row g-4 g-lg-5">
+      {% for book in books %}
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm transition-all hover-shadow">
+          <div class="position-relative overflow-hidden" style="height: 280px;">
+            <img src="{{ book.cover.url }}"
+                 class="img-fluid w-100 h-100 object-fit-cover transition-scale"
+                 alt="{{ book.title }}"
+                 loading="lazy">
+            <div class="badge bg-primary text-white position-absolute top-0 end-0 m-2 px-3 py-1 rounded-pill">
+              {{ book.category.name }}
+            </div>
+          </div>
+          <div class="card-body d-flex flex-column pb-3">
+            <h3 class="h5 card-title text-dark fw-bold mb-2 clamp-2-lines">{{ book.title }}</h3>
+            <p class="small text-muted mb-3">Par {{ book.author }}</p>
+            <p class="card-text text-secondary small clamp-3-lines mb-4">{{ book.description|truncatewords:20 }}</p>
+            <div class="d-flex justify-content-between align-items-center mt-auto">
+              <a href="{% url 'book_detail' book.slug %}" class="btn btn-sm btn-outline-primary stretched-link">
+                Détails <i class="fas fa-chevron-right ms-1"></i>
+              </a>
+              <span class="badge bg-light text-dark small">{{ book.publication_date|date:"Y" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-6 my-4">
+      <h3 class="h4 text-dark mb-3">Aucun livre trouvé</h3>
+      <p class="text-muted mb-4">Nous n'avons pas trouvé de livres correspondant à votre recherche.</p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{% url 'books_list' %}" class="btn btn-primary px-4">
+          <i class="fas fa-undo me-2"></i>Réinitialiser
+        </a>
+        <a href="#" class="btn btn-outline-primary px-4">
+          <i class="fas fa-headset me-2"></i>Nous contacter
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+  /* Hero avec gradient plus sombre */
+  .hero-section {
+    background: linear-gradient(135deg, #1a1a1a 0%, #343a40 50%, #1a1a1a 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5); /* Overlay pour contraste */
+    z-index: 1;
+  }
+
+  .hero-section .container {
+    z-index: 2;
+    position: relative;
+  }
+
+  .hero-title {
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+    color: #ffc107 !important; /* Jaune doré cohérent avec navbar */
+  }
+
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Effet hover sur les cartes */
+  .hover-shadow:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2) !important;
+    transform: translateY(-5px);
+  }
+
+  .transition-scale {
+    transition: transform 0.3s ease;
+  }
+  .transition-scale:hover {
+    transform: scale(1.05);
+  }
+</style>
+
+{% endblock %}
