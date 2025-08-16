@@ -1,13 +1,28 @@
 {% extends 'base.html' %}
-{% block title %}{{ book.title }} | Mini Bibliothèque{% endblock %}
+{% block  title %}{{ book.title }} | Mini Bibliothèque{% endblock %}
 {% block content %}
-<!-- Book Detail Section with Breadcrumb -->
+
+<!-- Floating Action Buttons -->
+<div class="floating-actions">
+  <button class="btn btn-primary btn-floating rounded-circle shadow" data-bs-toggle="modal" data-bs-target="#shareModal">
+    <i class="fas fa-share-alt"></i>
+  </button>
+  <button class="btn btn-warning btn-floating rounded-circle shadow" id="toggleDarkMode">
+    <i class="fas fa-moon"></i>
+  </button>
+  <button class="btn btn-info btn-floating rounded-circle shadow" id="fontSizeToggle">
+    <i class="fas fa-text-height"></i>
+  </button>
+</div>
+
+<!-- Book Detail Section -->
 <section class="py-5 bg-light">
   <div class="container">
+    <!-- Enhanced Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'home' %}">Accueil</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'books_list' %}">Catalogue</a></li>
+      <ol class="breadcrumb bg-white rounded-3 px-4 py-3 shadow-sm">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fas fa-home me-1"></i> Accueil</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'books_list' %}"><i class="fas fa-book me-1"></i> Catalogue</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ book.title|truncatewords:3 }}</li>
       </ol>
     </nav>
@@ -15,14 +30,33 @@
     <div class="row g-4 g-lg-5">
       <!-- Book Cover Column -->
       <div class="col-lg-4 col-xl-3">
-        <div class="sticky-top" style="top: 80px;">
-          <div class="card border-0 shadow-sm">
+        <div class="sticky-top" style="top: 80px; z-index: 100;">
+          <div class="card border-0 shadow-sm hover-shadow transition-all">
             <div class="card-body p-4 text-center">
-              <img src="{{ book.cover.url }}"
-                   class="img-fluid rounded shadow mb-3"
-                   alt="{{ book.title }}"
-                   style="max-height: 360px; width: auto;">
+              <div class="position-relative mb-4">
+                <img src="{{ book.cover.url }}"
+                     class="img-fluid rounded shadow book-cover"
+                     alt="{{ book.title }}"
+                     id="bookCover">
+                <div class="hover-zoom">
+                  <i class="fas fa-search-plus"></i>
+                </div>
+              </div>
              
+              <!-- Book Rating -->
+              <div class="rating mb-4">
+                <div class="stars">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star-half-alt"></i>
+                  <i class="far fa-star"></i>
+                  <span class="ms-2">4.3</span>
+                </div>
+                <small class="text-muted d-block">(12 avis)</small>
+              </div>
+             
+              <!-- Action Buttons -->
               <div class="d-grid gap-3">
                 {% if book.file %}
                 <a href="{{ book.file.url }}"
@@ -37,28 +71,58 @@
                   <a href="{% url 'books_list' %}" class="btn btn-outline-secondary flex-grow-1">
                     <i class="fas fa-arrow-left me-2"></i>Retour
                   </a>
-                  <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#shareModal">
+                  <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#shareModal">
                     <i class="fas fa-share-alt"></i>
                   </button>
+                  <button class="btn btn-outline-danger" id="addToFavorites">
+                    <i class="far fa-heart"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Quick Stats -->
+              <div class="quick-stats mt-4 pt-3 border-top">
+                <div class="row g-2 text-center">
+                  <div class="col-4">
+                    <div class="p-2 bg-light rounded">
+                      <i class="fas fa-eye text-primary mb-1"></i>
+                      <div class="small fw-bold">245</div>
+                      <div class="xsmall text-muted">Vues</div>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="p-2 bg-light rounded">
+                      <i class="fas fa-download text-success mb-1"></i>
+                      <div class="small fw-bold">89</div>
+                      <div class="xsmall text-muted">Téléch.</div>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="p-2 bg-light rounded">
+                      <i class="fas fa-bookmark text-warning mb-1"></i>
+                      <div class="small fw-bold">34</div>
+                      <div class="xsmall text-muted">Favoris</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+          
+          
       <!-- Book Content Column -->
       <div class="col-lg-8 col-xl-9">
         <div class="card border-0 shadow-sm">
           <div class="card-body p-4 p-lg-5">
             <!-- Book Header -->
             <div class="mb-4 pb-3 border-bottom">
-              <div class="d-flex justify-content-between align-items-start">
+              <div class="d-flex justify-content-between align-items-start flex-wrap">
                 <div>
-                  <h1 class="display-6 fw-bold text-dark mb-2">{{ book.title }}</h1>
-                  <h2 class="h4 text-muted mb-3">par {{ book.author }}</h2>
+                  <h1 class="display-6 fw-bold text-dark mb-2" id="bookTitle">{{ book.title }}</h1>
+                  <h2 class="h4 text-muted mb-3">par <a href="#" class="text-decoration-none">{{ book.author }}</a></h2>
                 </div>
                 <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-2 rounded-pill">
-                  {{ book.category.name }}
+                  <i class="fas fa-tag me-1"></i>{{ book.category.name }}
                 </span>
               </div>
              
@@ -79,20 +143,81 @@
                   ISBN: {{ book.isbn }}
                 </span>
                 {% endif %}
+                <span class="badge bg-light text-dark py-2 px-3">
+                  <i class="fas fa-language text-primary me-2"></i>
+                  Français
+                </span>
               </div>
             </div>
+            
             <!-- Book Description -->
-            <div class="mb-5">
+            <div class="mb-5 content-text">
               <h3 class="h5 fw-bold text-dark mb-3">Synopsis</h3>
-              <div class="text-dark lh-lg fs-5" style="text-align: justify;">
+              <div class="text-dark lh-lg" style="text-align: justify;">
                 {{ book.description|linebreaks }}
               </div>
             </div>
+            
+            <!-- Book Details Accordion -->
+            <div class="mb-5">
+              <div class="accordion" id="bookDetailsAccordion">
+                <div class="accordion-item border-0 mb-3 shadow-sm">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDetails">
+                      <i class="fas fa-info-circle me-2 text-primary"></i> Détails complémentaires
+                    </button>
+                  </h2>
+                  <div id="collapseDetails" class="accordion-collapse collapse" data-bs-parent="#bookDetailsAccordion">
+                    <div class="accordion-body">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <ul class="list-unstyled">
+                            <li class="mb-2"><strong>Éditeur:</strong> Éditions XYZ</li>
+                            <li class="mb-2"><strong>Date de publication:</strong> {{ book.publication_date|date:"d/m/Y" }}</li>
+                            <li class="mb-2"><strong>Langue:</strong> Français</li>
+                          </ul>
+                        </div>
+                        <div class="col-md-6">
+                          <ul class="list-unstyled">
+                            <li class="mb-2"><strong>Format:</strong> PDF, EPUB</li>
+                            <li class="mb-2"><strong>Taille:</strong> 2.4 MB</li>
+                            <li class="mb-2"><strong>Licence:</strong> Creative Commons</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="accordion-item border-0 shadow-sm">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCitations">
+                      <i class="fas fa-quote-right me-2 text-primary"></i> Citations populaires
+                    </button>
+                  </h2>
+                  <div id="collapseCitations" class="accordion-collapse collapse" data-bs-parent="#bookDetailsAccordion">
+                    <div class="accordion-body">
+                      <blockquote class="blockquote mb-3">
+                        <p class="mb-2">"Ceci est une citation marquante du livre qui illustre son style et son contenu."</p>
+                        
+                      </blockquote>
+                      <blockquote class="blockquote">
+                        <p class="mb-2">"Une autre citation importante qui donne envie de lire le livre."</p>
+                      
+                      </blockquote>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <!-- Book Preview -->
             {% if book.file %}
             <div class="mt-5 pt-4 border-top">
               <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-                <h3 class="h5 fw-bold text-dark mb-3 mb-sm-0">Aperçu interactif</h3>
+                <h3 class="h5 fw-bold text-dark mb-3 mb-sm-0">
+                  <i class="fas fa-book-reader me-2"></i>Aperçu interactif
+                </h3>
                 <div class="d-flex gap-2">
                   <a href="{{ book.file.url }}"
                      class="btn btn-outline-primary btn-sm"
@@ -104,10 +229,13 @@
                      download>
                     <i class="fas fa-download me-1"></i>Télécharger
                   </a>
+                  <button class="btn btn-outline-secondary btn-sm" id="fullscreenPreview">
+                    <i class="fas fa-arrows-alt me-1"></i>Immersion
+                  </button>
                 </div>
               </div>
              
-              <div class="ratio ratio-16x9 border rounded-3 overflow-hidden shadow-sm bg-light">
+              <div class="ratio ratio-16x9 border rounded-3 overflow-hidden shadow-sm bg-light" id="pdfPreview">
                 <iframe src="{{ book.file.url }}#toolbar=0&view=fitH"
                         class="w-100 h-100"
                         allowfullscreen
@@ -117,23 +245,20 @@
               <div class="alert alert-info mt-3 d-flex align-items-center">
                 <i class="fas fa-info-circle me-2 fs-5"></i>
                 <div>
-                  <strong>Astuce :</strong> Utilisez les touches fléchées ou les contrôles pour naviguer dans l'aperçu
+                  <strong>Astuce :</strong> Utilisez <kbd>Ctrl + Molette</kbd> pour zoomer ou les touches fléchées pour naviguer
                 </div>
               </div>
             </div>
             {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+            
+            
+
 <!-- Share Modal -->
 <div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Partager ce livre</h5>
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-share-alt me-2"></i>Partager ce livre</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -144,15 +269,18 @@
           <a href="#" class="btn btn-outline-info rounded-circle p-3">
             <i class="fab fa-twitter fs-5"></i>
           </a>
-          <a href="#" class="btn btn-outline-danger rounded-circle p-3">
+          <a href="#" class="btn btn-outline-success rounded-circle p-3">
             <i class="fab fa-whatsapp fs-5"></i>
           </a>
-          <a href="#" class="btn btn-outline-secondary rounded-circle p-3">
+          <a href="#" class="btn btn-outline-danger rounded-circle p-3">
             <i class="fas fa-envelope fs-5"></i>
+          </a>
+          <a href="#" class="btn btn-outline-dark rounded-circle p-3">
+            <i class="fab fa-linkedin-in fs-5"></i>
           </a>
         </div>
         <div class="input-group mb-3">
-          <input type="text" class="form-control" value="{{ request.build_absolute_uri }}" readonly>
+          <input type="text" class="form-control" value="{{ request.build_absolute_uri }}" id="shareUrl" readonly>
           <button class="btn btn-primary" onclick="copyToClipboard()">
             <i class="fas fa-copy me-1"></i>Copier
           </button>
@@ -161,4 +289,302 @@
     </div>
   </div>
 </div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-star me-2"></i>Ajouter un avis</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-4 text-center">
+            <div class="rating-input mb-2">
+              <input type="radio" id="star5" name="rating" value="5">
+              <label for="star5"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star4" name="rating" value="4">
+              <label for="star4"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star3" name="rating" value="3">
+              <label for="star3"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star2" name="rating" value="2">
+              <label for="star2"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star1" name="rating" value="1">
+              <label for="star1"><i class="fas fa-star"></i></label>
+            </div>
+            <small class="text-muted">Sélectionnez une note de 1 à 5 étoiles</small>
+          </div>
+          <div class="mb-3">
+            <label for="reviewTitle" class="form-label fw-bold">Titre de votre avis</label>
+            <input type="text" class="form-control" id="reviewTitle" placeholder="Ex: 'Lecture captivante'">
+          </div>
+          <div class="mb-3">
+            <label for="reviewText" class="form-label fw-bold">Votre avis</label>
+            <textarea class="form-control" id="reviewText" rows="4" placeholder="Décrivez votre expérience avec ce livre..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2">Publier votre avis</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Zoom Modal -->
+<div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-transparent border-0">
+      <div class="modal-header border-0">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="{{ book.cover.url }}" class="img-fluid rounded shadow-lg" id="zoomedImage" style="max-height: 80vh;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Floating Actions */
+  .floating-actions {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .btn-floating {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-floating:hover {
+    transform: translateY(-3px) scale(1.1);
+  }
+  
+  /* Book Cover Enhancements */
+  .book-cover {
+    max-height: 360px;
+    width: auto;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  
+  .book-cover:hover {
+    transform: scale(1.02);
+  }
+  
+  .hover-zoom {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .hover-zoom i {
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  .position-relative:hover .hover-zoom {
+    opacity: 1;
+  }
+  
+  /* Rating Styles */
+  .rating {
+    color: #ffc107;
+  }
+  
+  .rating-input {
+    display: flex;
+    justify-content: center;
+    direction: rtl;
+  }
+  
+  .rating-input input {
+    display: none;
+  }
+  
+  .rating-input label {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+    padding: 0 5px;
+  }
+  
+  .rating-input input:checked ~ label,
+  .rating-input label:hover,
+  .rating-input label:hover ~ label {
+    color: #ffc107;
+  }
+  
+  /* Review Item */
+  .review-item {
+    transition: all 0.3s ease;
+  }
+  
+  .review-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    padding: 0 10px;
+  }
+  
+  /* Content Text for Readability */
+  .content-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 992px) {
+    .sticky-top {
+      position: static !important;
+    }
+    
+    .floating-actions {
+      bottom: 20px;
+      right: 20px;
+    }
+    
+    .btn-floating {
+      width: 45px;
+      height: 45px;
+    }
+  }
+  
+  /* Dark Mode Support */
+  body.dark-mode {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
+  
+  body.dark-mode .card,
+  body.dark-mode .breadcrumb,
+  body.dark-mode .accordion-item,
+  body.dark-mode .alert {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border-color: #444;
+  }
+  
+  body.dark-mode .text-dark,
+  body.dark-mode .text-muted,
+  body.dark-mode .text-secondary {
+    color: #b0b0b0 !important;
+  }
+  
+  body.dark-mode .bg-light {
+    background-color: #222 !important;
+  }
+  
+  body.dark-mode .btn-outline-secondary {
+    border-color: #555;
+    color: #b0b0b0;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Copy URL to clipboard
+    window.copyToClipboard = function() {
+      const copyText = document.getElementById("shareUrl");
+      copyText.select();
+      copyText.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      
+      // Show tooltip or alert
+      const originalText = copyText.nextElementSibling.innerHTML;
+      copyText.nextElementSibling.innerHTML = '<i class="fas fa-check me-1"></i>Copié!';
+      setTimeout(() => {
+        copyText.nextElementSibling.innerHTML = originalText;
+      }, 2000);
+    };
+    
+    // Add to favorites
+    document.getElementById('addToFavorites').addEventListener('click', function() {
+      const icon = this.querySelector('i');
+      if (icon.classList.contains('far')) {
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        this.classList.remove('btn-outline-danger');
+        this.classList.add('btn-danger');
+      } else {
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        this.classList.remove('btn-danger');
+        this.classList.add('btn-outline-danger');
+      }
+    });
+    
+    // Toggle dark mode
+    document.getElementById('toggleDarkMode').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      const icon = this.querySelector('i');
+      if (document.body.classList.contains('dark-mode')) {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+      } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+      }
+    });
+    
+    // Font size toggle
+    const contentText = document.querySelector('.content-text');
+    document.getElementById('fontSizeToggle').addEventListener('click', function() {
+      const currentSize = window.getComputedStyle(contentText).fontSize;
+      const newSize = parseFloat(currentSize) + 2;
+      if (newSize <= 22) {
+        contentText.style.fontSize = newSize + 'px';
+      } else {
+        contentText.style.fontSize = '1.1rem';
+      }
+    });
+    
+    // Image zoom
+    const bookCover = document.getElementById('bookCover');
+    const zoomedImage = document.getElementById('zoomedImage');
+    
+    bookCover.addEventListener('click', function() {
+      zoomedImage.src = this.src;
+      const zoomModal = new bootstrap.Modal(document.getElementById('imageZoomModal'));
+      zoomModal.show();
+    });
+    
+    // Fullscreen preview
+    document.getElementById('fullscreenPreview').addEventListener('click', function() {
+      const elem = document.getElementById('pdfPreview');
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    });
+    
+    // Track book views (simulated)
+    setTimeout(() => {
+      console.log('Book view tracked for analytics');
+    }, 5000);
+  });
+</script>
+
 {% endblock %}

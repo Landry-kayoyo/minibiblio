@@ -1,28 +1,41 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Catalogue | PK Bibliothèque{% endblock %}
 {% block content %}
 
-<!-- Hero Section with Gradient and Overlay -->
-<section class="hero-section position-relative py-5 py-lg-7">
-  <!-- Overlay sombre pour contraste -->
-  <div class="hero-overlay"></div>
-
+<!-- Hero Section with Parallax Effect -->
+<section class="hero-section position-relative py-5 py-lg-7 overflow-hidden">
+  <!-- Parallax Background -->
+  <div class="parallax-bg" style="background-image: url('{% static 'images/library-background.jpg' %}');"></div>
+  <!-- Gradient Overlay -->
+  <div class="gradient-overlay"></div>
+  
   <div class="container position-relative text-center text-white">
     <div class="row justify-content-center">
       <div class="col-lg-10 col-xl-8">
-        <h1 class="display-4 fw-bold mb-4 hero-title">
+        <h1 class="display-4 fw-bold mb-4 hero-title animate__animated animate__fadeInDown">
           Explorez Notre Trésor Littéraire
         </h1>
-        <p class="lead mb-0 text-light opacity-75">
+        <p class="lead mb-4 text-light opacity-75 animate__animated animate__fadeIn animate__delay-1s">
           Plongez dans notre collection soigneusement sélectionnée et trouvez votre prochaine lecture favorite
         </p>
+        <!-- Search Bar -->
+        <form class="animate__animated animate__fadeIn animate__delay-2s" action="{% url 'books_list' %}" method="get">
+          <div class="input-group input-group-lg shadow">
+            <input type="text" name="q" class="form-control border-0 py-3" placeholder="Titre, auteur ou mot-clé..." aria-label="Recherche">
+            <button class="btn btn-warning text-dark px-4" type="submit">
+              <i class="fas fa-search me-2"></i>Rechercher
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Smart Filter Section -->
-<section class="sticky-top bg-white shadow-sm" style="top: 56px; z-index: 1020;">
+<!-- Smart Filter Section with Scroll Spy -->
+<section class="sticky-top bg-white shadow-sm filter-section" style="top: 56px; z-index: 1020;">
   <div class="container py-3">
     <div class="d-flex flex-nowrap overflow-x-auto pb-2 gap-2 scrollbar-hidden">
       <a href="{% url 'books_list' %}"
@@ -39,14 +52,35 @@
   </div>
 </section>
 
-<!-- Books Grid -->
+<!-- Books Grid with Loading Animation -->
 <section class="py-5 bg-light">
   <div class="container">
     {% if books %}
-    <div class="row g-4 g-lg-5">
+    <!-- Sorting Options -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <p class="text-muted mb-0">{{ books|length }} résultat(s) trouvé(s)</p>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <div class="dropdown d-inline-block">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-sort me-1"></i>Trier par
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+            <li><a class="dropdown-item" href="?sort=title">Titre (A-Z)</a></li>
+            <li><a class="dropdown-item" href="?sort=-title">Titre (Z-A)</a></li>
+            <li><a class="dropdown-item" href="?sort=author">Auteur (A-Z)</a></li>
+            <li><a class="dropdown-item" href="?sort=-publication_date">Plus récent</a></li>
+            <li><a class="dropdown-item" href="?sort=publication_date">Plus ancien</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row g-4 g-lg-5" id="booksGrid">
       {% for book in books %}
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm transition-all hover-shadow">
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 animate__animated animate__fadeIn">
+        <div class="card h-100 border-0 shadow-sm transition-all hover-shadow book-card">
           <div class="position-relative overflow-hidden" style="height: 280px;">
             <img src="{{ book.cover.url }}"
                  class="img-fluid w-100 h-100 object-fit-cover transition-scale"
@@ -55,10 +89,20 @@
             <div class="badge bg-primary text-white position-absolute top-0 end-0 m-2 px-3 py-1 rounded-pill">
               {{ book.category.name }}
             </div>
+            <!-- Quick View Button -->
+            <div class="quick-view position-absolute bottom-0 start-0 w-100 text-center p-2 bg-dark bg-opacity-75 text-white opacity-0 transition-all">
+              <a href="{% url 'book_detail' book.slug %}" class="text-white stretched-link">Voir détails</a>
+            </div>
           </div>
           <div class="card-body d-flex flex-column pb-3">
             <h3 class="h5 card-title text-dark fw-bold mb-2 clamp-2-lines">{{ book.title }}</h3>
             <p class="small text-muted mb-3">Par {{ book.author }}</p>
+            <div class="rating mb-2 text-warning small">
+              {% for i in "12345" %}
+                <i class="fas fa-star{% if forloop.counter > book.average_rating %} far{% endif %}"></i>
+              {% endfor %}
+              <span class="text-muted ms-1">({{ book.review_count }})</span>
+            </div>
             <p class="card-text text-secondary small clamp-3-lines mb-4">{{ book.description|truncatewords:20 }}</p>
             <div class="d-flex justify-content-between align-items-center mt-auto">
               <a href="{% url 'book_detail' book.slug %}" class="btn btn-sm btn-outline-primary stretched-link">
@@ -71,8 +115,43 @@
       </div>
       {% endfor %}
     </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-5">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+          <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+    
     {% else %}
-    <div class="text-center py-6 my-4">
+    <div class="text-center py-6 my-4 animate__animated animate__fadeIn">
+      <div class="mb-4">
+        <i class="fas fa-book-open fa-4x text-muted opacity-25"></i>
+      </div>
       <h3 class="h4 text-dark mb-3">Aucun livre trouvé</h3>
       <p class="text-muted mb-4">Nous n'avons pas trouvé de livres correspondant à votre recherche.</p>
       <div class="d-flex justify-content-center gap-3">
@@ -88,51 +167,154 @@
   </div>
 </section>
 
-<style>
-  /* Hero avec gradient plus sombre */
-  .hero-section {
-    background: linear-gradient(135deg, #1a1a1a 0%, #343a40 50%, #1a1a1a 100%);
-    position: relative;
-    overflow: hidden;
-  }
+<!-- Back to Top Button -->
+<button id="backToTop" class="btn btn-primary rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4 p-3 d-none" aria-label="Retour en haut">
+  <i class="fas fa-arrow-up"></i>
+</button>
 
-  .hero-overlay {
+<style>
+  /* Hero Section Styles */
+  .hero-section {
+    position: relative;
+    background-color: #343a40;
+  }
+  
+  .parallax-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    will-change: transform;
+    z-index: 0;
+  }
+  
+  .gradient-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5); /* Overlay pour contraste */
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.85) 0%, rgba(52, 58, 64, 0.85) 50%, rgba(26, 26, 26, 0.85) 100%);
     z-index: 1;
   }
-
+  
   .hero-section .container {
     z-index: 2;
     position: relative;
   }
-
+  
   .hero-title {
     text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
-    color: #ffc107 !important; /* Jaune doré cohérent avec navbar */
+    color: #ffc107 !important;
   }
-
+  
+  /* Filter Section */
+  .filter-section {
+    transition: all 0.3s ease;
+  }
+  
+  .filter-section.scrolled {
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+  }
+  
+  /* Book Cards */
+  .book-card:hover .quick-view {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+  
+  .quick-view {
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+  }
+  
+  .hover-shadow {
+    transition: all 0.3s ease;
+  }
+  
+  .hover-shadow:hover {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    transform: translateY(-5px) !important;
+  }
+  
+  .transition-scale {
+    transition: transform 0.3s ease;
+  }
+  
+  .transition-scale:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Text Clamping */
+  .clamp-2-lines {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .clamp-3-lines {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Scrollbar Hidden */
   .scrollbar-hidden {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  
   .scrollbar-hidden::-webkit-scrollbar {
     display: none;
   }
-
-  /* Effet hover sur les cartes */
-  .hover-shadow:hover {
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2) !important;
-    transform: translateY(-5px);
-  }
-
-  .transition-scale {
-    transition: transform 0.3s ease;
-  }
-  .transition-scale:hover {
-    transform: scale(1.05);
+  
+  /* Rating Stars */
+  .rating .fa-star {
+    font-size: 0.9em;
   }
 </style>
+
+<script>
+  // Parallax Effect
+  document.addEventListener('DOMContentLoaded', function() {
+    const parallaxBg = document.querySelector('.parallax-bg');
+    
+    if (parallaxBg) {
+      window.addEventListener('scroll', function() {
+        const scrollPosition = window.pageYOffset;
+        parallaxBg.style.transform = 'translateY(' + scrollPosition * 0.5 + 'px)';
+      });
+    }
+    
+    // Back to Top Button
+    const backToTopButton = document.getElementById('backToTop');
+    
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 300) {
+        backToTopButton.classList.remove('d-none');
+      } else {
+        backToTopButton.classList.add('d-none');
+      }
+    });
+    
+    backToTopButton.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    // Filter Section Shadow on Scroll
+    const filterSection = document.querySelector('.filter-section');
+    
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 100) {
+        filterSection.classList.add('scrolled');
+      } else {
+        filterSection.classList.remove('scrolled');
+      }
+    });
+  });
+</script>
 
 {% endblock %}
