@@ -11,12 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---------------------------
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-
-# ALLOWED_HOSTS selon l'environnement
-if DEBUG:
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-else:
-    ALLOWED_HOSTS = ['.onrender.com']  # Ton domaine Render
+ALLOWED_HOSTS = ['.onrender.com']  # Autorise ton domaine Render
 
 # ---------------------------
 # APPLICATION DEFINITION
@@ -47,7 +42,7 @@ ROOT_URLCONF = 'minibiblio.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # dossier templates global
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -64,23 +59,13 @@ WSGI_APPLICATION = 'minibiblio.wsgi.application'
 # ---------------------------
 # DATABASE
 # ---------------------------
-if DEBUG:
-    # Base locale en SQLite pour tests
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    # Base PostgreSQL Render
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
+DATABASES = {
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True  # utile pour Render
+    )
+}
 
 # ---------------------------
 # PASSWORD VALIDATION
